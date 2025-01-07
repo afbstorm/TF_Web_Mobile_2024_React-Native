@@ -5,27 +5,42 @@ import 'react-native-get-random-values';
 import {useState} from 'react';
 import {Button, FlatList, ScrollView, StyleSheet, Text, TextInput, View} from 'react-native';
 import {nanoid} from "nanoid";
+import MissionInput from "./src/components/missionInput";
+import MissionItem from "./src/components/missionItem";
 
 export default function App() {
 
-  const [inputValue, setInputValue] = useState('');
+  // const [inputValue, setInputValue] = useState('');
   const [missionList, setMissionList] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleInput = (value) => {
-      setInputValue(() => value);
+  const handleModal = () => {
+      setIsOpen(!isOpen)
   }
 
-  const handleAddMission = () => {
-      // ⬇️ en utilisant un tableau simple, index étant la key
-      // setMissionList((currentMissions) => [...missionList, inputValue])
-
-      // ⬇️ en utilisant un objet avec un id unique par élément
-      setMissionList((currentMissions) => [...currentMissions, {
-          key: nanoid(),
-          text: inputValue
-      }])
-      setInputValue('')
+  const handleDeleteMission = (id) => {
+      setMissionList((currentMissions) => {
+          return currentMissions.filter(mission => mission.key !== id);
+      })
   }
+
+  // ⬇️ AVANT séparation des composants et création de la modal ⬇️
+  // const handleInput = (value) => {
+  //     setInputValue(() => value);
+  // }
+  //
+  // const handleAddMission = () => {
+  //     // ⬇️ en utilisant un tableau simple, index étant la key
+  //     // setMissionList((currentMissions) => [...missionList, inputValue])
+  //
+  //     // ⬇️ en utilisant un objet avec un id unique par élément
+  //     setMissionList((currentMissions) => [...currentMissions, {
+  //         key: nanoid(),
+  //         text: inputValue
+  //     }])
+  //     setInputValue('')
+  // }
+  // ⬆️ AVANT séparation des composants et création de la modal ⬆️
 
   // View :
   // Va être le conteneur principal de vos éléments native.
@@ -72,11 +87,19 @@ export default function App() {
       <>
         {/* Conteneur principal de l'application */}
         <View style={styles.appContainer}>
+
+            <Button title='Nouvelle mission' color='#c72f2f' onPress={handleModal}/>
+            {isOpen && (
+                <MissionInput setMissionList={setMissionList} isOpen={isOpen} handleClose={handleModal} />
+            )}
+
+            {/*⬇️ AVANT séparation des composants et création de la modal ⬇️*/}
             {/* Conteneur de l'input */}
-            <View style={styles.inputContainer}>
-                <TextInput style={styles.textInput} value={inputValue} placeholderTextColor="#FFF" placeholder='Inscrivez votre prochaine mission' onChangeText={handleInput} />
-                <Button title='Confirmer' onPress={handleAddMission} />
-            </View>
+            {/*<View style={styles.inputContainer}>*/}
+            {/*    <TextInput style={styles.textInput} value={inputValue} placeholderTextColor="#FFF" placeholder='Inscrivez votre prochaine mission' onChangeText={handleInput} />*/}
+            {/*    <Button title='Confirmer' onPress={handleAddMission} />*/}
+            {/*</View>*/}
+            {/*⬆️ AVANT séparation des composants et création de la modal ⬆️*/}
 
             {/* Conteneur de la liste des missions ⚠️ la liste ne sera pas scrollable */}
             {/*<View style={styles.missionsContainer}>*/}
@@ -103,9 +126,10 @@ export default function App() {
                     data={missionList}
                     renderItem={(itemData) => {
                         return (
-                            <View style={styles.missionItem}>
-                                <Text style={styles.missionText}>{itemData.item.text}</Text>
-                            </View>
+                            <MissionItem
+                                text={itemData.item.text}
+                                id={itemData.item.key}
+                                handleLongPress={handleDeleteMission} />
                         )
                     }}
                 />
@@ -122,32 +146,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: '#452896'
   },
-  inputContainer: {
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 24,
-  },
-  textInput: {
-      borderWidth: 1,
-      borderColor: '#ccc',
-      marginRight: 8,
-      padding: 8,
-      color: '#FFF',
-      width: '70%',
-  },
+  // inputContainer: {
+  //     flex: 1,
+  //     flexDirection: 'row',
+  //     justifyContent: 'space-between',
+  //     alignItems: 'center',
+  //     marginBottom: 24,
+  // },
+  // textInput: {
+  //     borderWidth: 1,
+  //     borderColor: '#ccc',
+  //     marginRight: 8,
+  //     padding: 8,
+  //     color: '#FFF',
+  //     width: '70%',
+  // },
   missionsContainer: {
       flex: 5
   },
-  missionItem: {
-      margin: 8,
-      padding: 8,
-      borderRadius: 4,
-      backgroundColor: '#b70808'
-  },
-  missionText: {
-      color: "#FFF"
-  }
+  // missionItem: {
+  //     margin: 8,
+  //     padding: 8,
+  //     borderRadius: 4,
+  //     borderColor: '#ccc',
+  //     borderWidth: 1,
+  //     backgroundColor: '#783ece'
+  // },
+  // missionText: {
+  //     color: "#FFF"
+  // }
 
 });
