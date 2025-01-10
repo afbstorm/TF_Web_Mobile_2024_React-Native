@@ -7,6 +7,7 @@ import {Button, FlatList, ScrollView, StyleSheet, Text, TextInput, View} from 'r
 import {nanoid} from "nanoid";
 import MissionInput from "../../components/missionInput";
 import MissionItem from "../../components/missionItem";
+import {useNavigation} from "@react-navigation/native";
 
 // Récupération du prop de navigation pour pouvoir utiliser les méthodes liées à la navigation
 const MissionsListScreen = ({navigation}) => {
@@ -15,17 +16,33 @@ const MissionsListScreen = ({navigation}) => {
     const [missionList, setMissionList] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
 
+    // ⬇️ On peut ne pas utiliser le prop navigation en passant par le hook useNavigation()
+    // const navigation = useNavigation()
+
+
     const handleMissionPress = (id) => {
-        navigation.navigate('MissionDetails', {id});
+        const mission = missionList.find(mission => mission.key === id);
+        navigation.navigate('MissionDetails', {mission});
     }
 
     const handleModal = () => {
         setIsOpen(!isOpen)
     }
 
-    const handleDeleteMission = (id) => {
-        setMissionList((currentMissions) => {
-            return currentMissions.filter(mission => mission.key !== id);
+    // const handleDeleteMission = (id) => {
+    //     setMissionList((currentMissions) => {
+    //         return currentMissions.filter(mission => mission.key !== id);
+    //     })
+    // }
+
+    const handleCompleteMission = (id) => {
+        setMissionList(currentMissions => {
+            return currentMissions.map(mission => {
+                if (mission.key === id) {
+                    return {...mission, completed: true}
+                }
+                return mission;
+            })
         })
     }
 
@@ -132,10 +149,9 @@ const MissionsListScreen = ({navigation}) => {
                         renderItem={(itemData) => {
                             return (
                                 <MissionItem
-                                    text={itemData.item.text}
-                                    id={itemData.item.key}
+                                    data={itemData.item}
                                     handlePress={handleMissionPress}
-                                    handleLongPress={handleDeleteMission}/>
+                                    handleLongPress={handleCompleteMission}/>
                             )
                         }}
                     />
