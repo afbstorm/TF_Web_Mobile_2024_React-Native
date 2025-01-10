@@ -57,21 +57,6 @@ const AppNav = () => {
                             size={24}
                             color='black' />
                     )}} />
-            <Tab.Screen
-                name='AuthenticationTab'
-                component={SettingsNav}
-                options={{
-                    headerShown: false,
-                    title: 'Login',
-                    tabBarIcon: () => (
-                        <FontAwesome5
-                            name='user-alt'
-                            size={24}
-                            color='black'
-                        />
-                    )
-                }}
-            />
         </Tab.Navigator>
     );
 };

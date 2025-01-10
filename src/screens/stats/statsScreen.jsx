@@ -1,3 +1,7 @@
+import { PieChart } from "react-native-gifted-charts";
+import { View, StyleSheet } from "react-native";
+import { useState, useEffect } from "react";
+
 const StatsScreen = () => {
 
     const missions = [
@@ -48,7 +52,7 @@ const StatsScreen = () => {
             text: "Mise à jour site web",
             description: "Intégration des nouvelles fonctionnalités et correction des bugs",
             location: "Remote",
-            completed: true
+            completed: false
         },
         {
             key: "Nt5qW2xA7yJ",
@@ -62,7 +66,7 @@ const StatsScreen = () => {
             text: "Recrutement développeur",
             description: "Entretiens pour le poste de développeur full-stack senior",
             location: "RH - Bureau 302",
-            completed: true
+            completed: false
         },
         {
             key: "Cl4gH8sV0nR",
@@ -72,11 +76,43 @@ const StatsScreen = () => {
             completed: false
         }
     ];
-    return (
-        <>
 
-        </>
+    const [datas, setDatas] = useState([
+        {value: 0, color: '#fbe987', text: null},
+        {value: 0, color: '#b98d63', text: null}
+    ]);
+
+    useEffect(() => {
+        let completedCount = 0;
+        let onGoingCount = 0;
+        for (let i = 0; i < missions.length; i++) {
+            if (missions[i].completed) {
+                completedCount++
+            } else {
+                onGoingCount++
+            }
+        }
+
+        setDatas([
+            {value: completedCount, color: '#fbe987', text: 'Terminées ' + (datas[0].value / missions.length) * 100 + '%'},
+            {value: onGoingCount, color: '#b98d63', text: 'En cours ' + (datas[1].value / missions.length) * 100 + '%'}
+        ])
+    }, []);
+
+    return (
+        <View style={styles.statsContainer}>
+            <PieChart data={datas} radius={190} showTooltip/>
+        </View>
     );
 };
+
+const styles = StyleSheet.create({
+    statsContainer: {
+        flex: 1,
+        paddingTop: 50,
+        paddingHorizontal: 16,
+        backgroundColor: '#452896'
+    }
+})
 
 export default StatsScreen;

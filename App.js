@@ -1,10 +1,14 @@
 import {NavigationContainer} from "@react-navigation/native";
-import AppNav from "./src/navigation/appNav";
+import {AuthProvider} from "./src/context/authContext";
+import Root from "./src/navigation/root";
 
 const App = () => {
     return (
         <NavigationContainer>
-                <AppNav />
+            {/* AuthProvider va englober l'application pour fournir le/les context à toute l'app */}
+            <AuthProvider>
+                <Root/>
+            </AuthProvider>
         </NavigationContainer>
     );
 };

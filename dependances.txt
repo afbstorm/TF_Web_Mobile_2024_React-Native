@@ -7,3 +7,6 @@ npm i react-native-gifted-charts
 
 icons :
 https://icons.expo.fyi/Index
+
+firebase :
+npx expo install firebase @react-native-firebase/auth
