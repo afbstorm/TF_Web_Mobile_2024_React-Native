@@ -10,8 +10,8 @@ const MissionItem = ({data, handleLongPress, handlePress}) => {
         <>
             <View style={data.completed ? styles.missionItemCompleted: styles.missionItem}>
                 <Pressable
-                    onPress={() => handlePress(data.key)}
-                    onLongPress={() => handleLongPress(data.key)}
+                    onPress={() => handlePress(data.id)}
+                    onLongPress={() => handleLongPress(data.id)}
                     android_ripple={{color: '#bb1313'}}>
                     <Text style={styles.missionText}>{data.text}</Text>
                 </Pressable>

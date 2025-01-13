@@ -2,12 +2,15 @@
 // pour générer des valeurs aléatoires
 // et l'importer tout en haut du composant
 import 'react-native-get-random-values';
-import {useState} from 'react';
-import {Button, FlatList, ScrollView, StyleSheet, Text, TextInput, View} from 'react-native';
+import {useNavigation} from "@react-navigation/native";
 import {nanoid} from "nanoid";
+import {useEffect, useState} from 'react';
+import {Alert, Button, FlatList, ScrollView, StyleSheet, Text, TextInput, View} from 'react-native';
+import { collection, query, onSnapshot, updateDoc, doc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from '../../../firebaseConfig';
+import { useAuth } from "../../context/authContext";
 import MissionInput from "../../components/missionInput";
 import MissionItem from "../../components/missionItem";
-import {useNavigation} from "@react-navigation/native";
 
 // Récupération du prop de navigation pour pouvoir utiliser les méthodes liées à la navigation
 const MissionsListScreen = ({navigation}) => {
@@ -15,13 +18,16 @@ const MissionsListScreen = ({navigation}) => {
     // const [inputValue, setInputValue] = useState('');
     const [missionList, setMissionList] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const { user } = useAuth();
+
 
     // ⬇️ On peut ne pas utiliser le prop navigation en passant par le hook useNavigation()
     // const navigation = useNavigation()
 
 
     const handleMissionPress = (id) => {
-        const mission = missionList.find(mission => mission.key === id);
+        const mission = missionList.find(mission => mission.id === id);
         navigation.navigate('MissionDetails', {mission});
     }
 
@@ -35,16 +41,74 @@ const MissionsListScreen = ({navigation}) => {
     //     })
     // }
 
-    const handleCompleteMission = (id) => {
-        setMissionList(currentMissions => {
-            return currentMissions.map(mission => {
-                if (mission.key === id) {
-                    return {...mission, completed: true}
-                }
-                return mission;
+    const handleCompleteMission = async (id) => {
+        // setMissionList(currentMissions => {
+        //     return currentMissions.map(mission => {
+        //         if (mission.key === id) {
+        //             return {...mission, completed: true}
+        //         }
+        //         return mission;
+        //     })
+        // })
+        try {
+            // 🟢 UN SEUL USER EN DB (application privée)
+            // const docRef = doc(db, 'missions', id));
+
+            // 🟢🟢🟢 MULTIPLES USERS EN DB
+            const docRef = doc(db, 'users', auth.currentUser.uid, 'missions', id);
+            await updateDoc(docRef, {
+                completed: true,
+                updateTime: serverTimestamp()
             })
-        })
+
+        } catch (err) {
+            Alert.alert('Erreur :', err.message);
+        }
+
     }
+
+    const fetchMissionsList = () => {
+        try {
+            setIsLoading(true);
+            // 🟢 UN SEUL USER EN DB (application privée)
+            // const missionsQuery = query(collection(db, 'missions'));
+
+            // 🟢🟢🟢 MULTIPLES USERS EN DB
+            const missionsQuery = query(collection(db, 'users', auth.currentUser.uid, 'missions'));
+
+            // Création de l'observable qui va écouter missionsQuery
+            const unsubscribe = onSnapshot(missionsQuery, (querySnapshot) => {
+                const documentsList = [];
+                querySnapshot.forEach(document => {
+                    documentsList.push({id: document.id, ...document.data()});
+                });
+
+                setMissionList(documentsList);
+                setIsLoading(false);
+            })
+
+            return unsubscribe;
+
+        } catch (err) {
+            Alert.alert('Erreur :', err.message);
+            setIsLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        let unsubscribe;
+        if (user) {
+            unsubscribe = fetchMissionsList()
+        } else {
+            setMissionList([]);
+        }
+
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        }
+    }, [user]);
 
     // ⬇️ AVANT séparation des composants et création de la modal ⬇️
     // const handleInput = (value) => {
@@ -144,22 +208,34 @@ const MissionsListScreen = ({navigation}) => {
                 {/*</View>*/}
 
                 <View style={styles.missionsContainer}>
-                    <FlatList
-                        data={missionList}
-                        renderItem={(itemData) => {
-                            return (
-                                <MissionItem
-                                    data={itemData.item}
-                                    handlePress={handleMissionPress}
-                                    handleLongPress={handleCompleteMission}/>
-                            )
-                        }}
-                    />
+                    {!isLoading && missionList.length === 0 ? (
+                        <View style={styles.messageContainer}>
+                            <Text style={styles.messageText}>Pas de mission en cours !</Text>
+                        </View>
+                    ) : isLoading ? (
+                        <View style={styles.messageContainer}>
+                            <Text style={styles.messageText}>Récupération de vos missions...</Text>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={missionList}
+                            renderItem={(itemData) => {
+                                return (
+                                    <MissionItem
+                                        data={itemData.item}
+                                        handlePress={handleMissionPress}
+                                        handleLongPress={handleCompleteMission}/>
+                                )
+                            }}
+                        />
+                    )}
                 </View>
             </View>
         </>
     );
 };
+
+
     const styles = StyleSheet.create({
         appContainer: {
             flex: 1,
@@ -195,7 +271,16 @@ const MissionsListScreen = ({navigation}) => {
         // },
         // missionText: {
         //     color: "#FFF"
-        // }
+        // },
+        messageContainer: {
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center"
+        },
+        messageText: {
+            color: "#FFF",
+            fontSize: 16
+        }
 
     });
 

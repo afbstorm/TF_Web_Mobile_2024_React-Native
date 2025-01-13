@@ -1,9 +1,26 @@
-import {StyleSheet, View, Text} from "react-native";
+import {StyleSheet, View, Text, TouchableOpacity, Alert} from "react-native";
+import {auth, db} from "../../../firebaseConfig";
+import {doc, deleteDoc} from "firebase/firestore";
 
-const MissionDetailsScreen = ({route}) => {
+const MissionDetailsScreen = ({route, navigation}) => {
     const {mission} = route.params;
     // ⬇️ On peut également utiliser le hook useRoute() au lieu du prop
     // const route = useRoute();
+
+    const handleDelete = async () => {
+        try {
+            // 🟢 UN SEUL USER EN DB (application privée)
+            // const docRef = doc(db, 'missions', mission.id));
+
+            // 🟢🟢🟢 MULTIPLES USERS EN DB
+            const docRef = doc(db, 'users', auth.currentUser.uid, 'missions', mission.id);
+
+            await deleteDoc(docRef);
+            navigation.navigate('MissionsList')
+        } catch (err) {
+            Alert.alert('Erreur :', err.message);
+        }
+    }
 
     return (
        <View style={styles.screenContainer}>
@@ -17,6 +34,11 @@ const MissionDetailsScreen = ({route}) => {
                <Text style={styles.desc}>
                    {mission.description}
                </Text>
+           </View>
+           <View style={styles.buttonContainer}>
+               <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+                   <Text style={styles.deleteText}>Supprimer la mission</Text>
+               </TouchableOpacity>
            </View>
        </View>
     );
@@ -53,6 +75,21 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#FFF',
         textAlign: 'center'
+    },
+    buttonContainer: {
+        flex: 1,
+        padding: 20
+    },
+    deleteButton: {
+        backgroundColor: '#ff3b30',
+        padding: 15,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginTop: 20
+    },
+    deleteText: {
+        color: '#fff',
+        fontSize: 16
     }
 })
 
