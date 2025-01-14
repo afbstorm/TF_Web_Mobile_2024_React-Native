@@ -1,26 +1,40 @@
+// import {auth, db} from "../../../firebaseConfig";
+// import {doc, deleteDoc} from "firebase/firestore";
 import {StyleSheet, View, Text, TouchableOpacity, Alert} from "react-native";
-import {auth, db} from "../../../firebaseConfig";
-import {doc, deleteDoc} from "firebase/firestore";
+import useMissionsStore from "../../store/missionsStore";
 
 const MissionDetailsScreen = ({route, navigation}) => {
     const {mission} = route.params;
     // ⬇️ On peut également utiliser le hook useRoute() au lieu du prop
     // const route = useRoute();
 
+    // ⭐💫⭐ AVEC ZUSTAND
+    const deleteMission = useMissionsStore(state => state.deleteMission);
     const handleDelete = async () => {
         try {
-            // 🟢 UN SEUL USER EN DB (application privée)
-            // const docRef = doc(db, 'missions', mission.id));
+            await deleteMission(mission.id);
 
-            // 🟢🟢🟢 MULTIPLES USERS EN DB
-            const docRef = doc(db, 'users', auth.currentUser.uid, 'missions', mission.id);
-
-            await deleteDoc(docRef);
-            navigation.navigate('MissionsList')
+            navigation.navigate('MissionsList');
         } catch (err) {
-            Alert.alert('Erreur :', err.message);
+            Alert.alert('Erreur :', err.message)
         }
     }
+
+    // ⬇️⬇️⬇️ Pré-Zustand
+    // const handleDelete = async () => {
+    //     try {
+    //         // 🟢 UN SEUL USER EN DB (application privée)
+    //         // const docRef = doc(db, 'missions', mission.id));
+    //
+    //         // 🟢🟢🟢 MULTIPLES USERS EN DB
+    //         const docRef = doc(db, 'users', auth.currentUser.uid, 'missions', mission.id);
+    //
+    //         await deleteDoc(docRef);
+    //         navigation.navigate('MissionsList')
+    //     } catch (err) {
+    //         Alert.alert('Erreur :', err.message);
+    //     }
+    // }
 
     return (
        <View style={styles.screenContainer}>

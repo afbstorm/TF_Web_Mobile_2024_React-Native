@@ -1,3 +1,6 @@
+// import { nanoid } from 'nanoid';
+// import { doc, setDoc, collection } from "firebase/firestore";
+// import { auth, db } from '../../firebaseConfig';
 import {
     Button,
     StyleSheet,
@@ -6,14 +9,12 @@ import {
     Modal,
     Image, Alert
 } from "react-native";
-// import { nanoid } from 'nanoid';
 import { useState } from "react";
-import { doc, setDoc, collection } from "firebase/firestore";
-import { auth, db } from '../../firebaseConfig';
+import useMissionsStore from "../store/missionsStore";
 
 
 // setMissionList, isOpen, handleClose vont être les props reçus par le composant
-const MissionInput = ({setMissionList, isOpen, handleClose}) => {
+const MissionInput = ({isOpen, handleClose}) => {
     const [inputValue, setInputValue] = useState({
         text:'',
         description: '',
@@ -27,57 +28,73 @@ const MissionInput = ({setMissionList, isOpen, handleClose}) => {
         }));
     }
 
+    // ⭐💫⭐ AVEC ZUSTAND
+    // const { addMission } = useMissionsStore();
+    const addMission = useMissionsStore(state => state.addMission);
     const handleAddMission = async () => {
-        if (inputValue.text.trim() === '' || inputValue.description.trim() === '' || inputValue.location.trim() === '') {
-            return;
-        }
-
-        // setMissionList((currentMissions) => [...currentMissions, {
-        //     key: nanoid(),
-        //     text: inputValue.text,
-        //     description: inputValue.description,
-        //     location: inputValue.location,
-        //     completed: false
-        // }])
-
         try {
-            // 🟢 UN SEUL USER EN DB (application privée)
-            // Crée une image (une référence) d'un nouveau document avec un id que firebase va généré.
-            // collection(db, 'mission') -> sélectionne la collection 'missions' dans la DB (si elle n'existe, il la crée)
-            // doc(...) -> crée la référence du document à créer
-            // const newDoc = doc(collection(db, 'missions'));
-
-            // Sauvegarde (envoi) du document dans firestore (dans la db)
-            // await setDoc(newDoc, {
-            //     id: newDoc.id,
-            //     text: inputValue.text,
-            //     description: inputValue.description,
-            //     location: inputValue.location,
-            //     completed: false
-            // });
-
-            // 🟢🟢🟢 MULTIPLES USERS EN DB
-            const newDoc = doc(collection(db, 'users', auth.currentUser.uid, 'missions'));
-
-            await setDoc(newDoc, {
-                id: newDoc.id,
+            await addMission({
                 text: inputValue.text,
                 description: inputValue.description,
-                location: inputValue.location,
-                completed: false
+                location: inputValue.location
             });
-
-
-            setInputValue({
-                text:'',
-                description: '',
-                location: ''
-            })
-            // Fermeture de la modal à l'envoi de la valeur de l'input dans la liste
-            handleClose()
+            handleClose();
         } catch (err) {
-            Alert.alert('Erreur :', err.message);
+            Alert.alert('Erreur :', err.message)
         }
+
+    // ⬇️⬇️⬇️ Pré-Zustand
+    // const handleAddMission = async () => {
+    //     if (inputValue.text.trim() === '' || inputValue.description.trim() === '' || inputValue.location.trim() === '') {
+    //         return;
+    //     }
+    //
+    //     // setMissionList((currentMissions) => [...currentMissions, {
+    //     //     key: nanoid(),
+    //     //     text: inputValue.text,
+    //     //     description: inputValue.description,
+    //     //     location: inputValue.location,
+    //     //     completed: false
+    //     // }])
+    //
+    //     try {
+    //         // 🟢 UN SEUL USER EN DB (application privée)
+    //         // Crée une image (une référence) d'un nouveau document avec un id que firebase va généré.
+    //         // collection(db, 'mission') -> sélectionne la collection 'missions' dans la DB (si elle n'existe, il la crée)
+    //         // doc(...) -> crée la référence du document à créer
+    //         // const newDoc = doc(collection(db, 'missions'));
+    //
+    //         // Sauvegarde (envoi) du document dans firestore (dans la db)
+    //         // await setDoc(newDoc, {
+    //         //     id: newDoc.id,
+    //         //     text: inputValue.text,
+    //         //     description: inputValue.description,
+    //         //     location: inputValue.location,
+    //         //     completed: false
+    //         // });
+    //
+    //         // 🟢🟢🟢 MULTIPLES USERS EN DB
+    //         const newDoc = doc(collection(db, 'users', auth.currentUser.uid, 'missions'));
+    //
+    //         await setDoc(newDoc, {
+    //             id: newDoc.id,
+    //             text: inputValue.text,
+    //             description: inputValue.description,
+    //             location: inputValue.location,
+    //             completed: false
+    //         });
+    //
+    //
+    //         setInputValue({
+    //             text:'',
+    //             description: '',
+    //             location: ''
+    //         })
+    //         // Fermeture de la modal à l'envoi de la valeur de l'input dans la liste
+    //         handleClose()
+    //     } catch (err) {
+    //         Alert.alert('Erreur :', err.message);
+    //     }
 
 
 
